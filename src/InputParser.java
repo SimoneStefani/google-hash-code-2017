@@ -11,11 +11,20 @@ public class InputParser {
     private int numVideos, numEndopoints, numRequests, numCaches, capacity;
 
     private int [] videos;
+    private Cache [] caches;
+    private Request [] requests;
+    private Endpoint [] endpoints;
 
     public InputParser(String file) {
         this.fileName = file.substring(0, file.lastIndexOf('.'));
         this.fileExtension = file.substring(file.lastIndexOf('.'), file.length());
         this.readInput();
+    }
+
+    public void run() {
+        for (Request r : requests) {
+            handleRequest(r);
+        }
     }
 
     /**
@@ -32,6 +41,15 @@ public class InputParser {
             this.numRequests = in.nextInt();
             this.numCaches = in.nextInt();
             this.capacity = in.nextInt();
+
+            this.caches = new Cache[this.numCaches];
+
+            for (int i = 0; i < this.numCaches; i++) {
+                this.caches[i] = new Cache(this.capacity);
+            }
+
+            this.requests = new Request[this.numRequests];
+            this.endpoints = new Endpoint[this.numEndopoints];
 
             // VIDEOS
             this.videos = new int[numVideos];
@@ -53,6 +71,7 @@ public class InputParser {
                     temp.cachesId[j] = in.nextInt();
                     temp.cachesLatency[j] = in.nextInt();
                 }
+                this.endpoints[i] = temp;
             }
 
             // REQUESTS
@@ -61,6 +80,8 @@ public class InputParser {
                 temp.video = in.nextInt();
                 temp.endpoint = in.nextInt();
                 temp.requests = in.nextInt();
+
+                this.requests[i] = temp;
             }
 
             in.close();
@@ -68,6 +89,23 @@ public class InputParser {
         } catch (FileNotFoundException e) {
             // file not found.
             System.out.printf("[ERROR] " + e.getMessage());
+        }
+    }
+
+    public void handleRequest(Request r) {
+        if (endpoints[r.endpoint].cachesId.length == 0) {
+            return;
+        }
+
+        int videoSize = videos[r.video];
+
+        int resultCache = -1;
+
+        for (int i = 0; i <  endpoints[r.endpoint].cachesId.length; i++) {
+            if (caches[endpoints[r.endpoint].cachesId[i]].capacity - videoSize > 0) {
+                caches[endpoints[r.endpoint].cachesId[i]].addVideo(r.video, videoSize);
+                return;
+            }
         }
     }
 }
