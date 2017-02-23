@@ -10,7 +10,7 @@ public class Request implements Comparable<Request> {
 
     @Override
     public int compareTo(Request o) {
-        if (this.gain > o.gain) {
+        if (this.gain < o.gain) {
             return 1;
         } else if (this.gain == o.gain) {
             return 0;

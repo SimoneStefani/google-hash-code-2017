@@ -19,6 +19,7 @@ public class InputParser {
     private Endpoint [] endpoints;
     private PriorityQueue<Request> requests;
 
+    public int notServed = 0;
     public InputParser(String file) {
         this.fileName = file.substring(0, file.lastIndexOf('.'));
         this.fileExtension = file.substring(file.lastIndexOf('.'), file.length());
@@ -27,7 +28,9 @@ public class InputParser {
 
     public void run() {
         while (!requests.isEmpty()) {
-            handleRequest(requests.poll());
+            Request req = requests.poll();
+            handleRequest(req);
+//            System.out.println("Req gain: " + req.gain);
         }
     }
 
@@ -98,6 +101,7 @@ public class InputParser {
                 int videoSize = videos[temp.video];
 
                 temp.gain = ((endpoints[temp.endpoint].latency - gain) * temp.requests);
+//                temp.gain = videoSize;
 
 
 //                this.requests[i] = temp;
@@ -131,6 +135,7 @@ public class InputParser {
         }
 
         if (cacheResult == -1) {
+            this.notServed++;
             return;
         }
 
@@ -181,6 +186,7 @@ public class InputParser {
             }
 
             System.out.println("Caches used: " + counter);
+            System.out.println(notServed);
 
             bw.flush();
             bw.close();
