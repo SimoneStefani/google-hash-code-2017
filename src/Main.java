@@ -4,9 +4,9 @@
 public class Main {
 
         public static void main(String[] args) {
-            InputParser parser = new InputParser("me_at_the_zoo.in");
-//            parser.run();
-//            parser.writeOutput();
+            InputParser parser = new InputParser("videos_worth_spreading.in");
+            parser.run();
+            parser.writeOutput();
 //            parser.writeStats();
         }
 }

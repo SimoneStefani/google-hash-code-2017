@@ -1,3 +1,5 @@
+import com.sun.deploy.util.StringUtils;
+
 import java.io.*;
 import java.util.Scanner;
 
@@ -107,5 +109,52 @@ public class InputParser {
                 return;
             }
         }
+    }
+
+    /**
+     * Write output to filename.out
+     */
+    public void writeOutput() {
+        FileWriter out;
+        File outputFile = new File(this.fileName + ".out");
+
+        try {
+            out = new FileWriter(outputFile);
+            BufferedWriter bw = new BufferedWriter(out);
+
+            // print amount of commands
+            bw.write(String.valueOf(-1));
+            bw.newLine();
+
+            int counter = 0;
+
+            // write output here
+            for (int i = 0; i < this.numCaches; i++) {
+                if (caches[i].capacity == this.capacity) {
+                    continue;
+                }
+                StringBuilder sb = new StringBuilder();
+                sb.append(i);
+                for (int id : caches[i].videos) {
+                    sb.append(" " + id);
+                }
+//                String output = "" + i + " " + StringUtils.join(caches[i].videos, " ");
+                bw.write(sb.toString());
+                bw.newLine();
+
+                counter++;
+            }
+
+            System.out.println("Caches used: " + counter);
+
+            bw.flush();
+            bw.close();
+
+        } catch (IOException e) {
+            // file not found.
+            System.out.printf("[ERROR] " + e.getMessage());
+        }
+
+
     }
 }

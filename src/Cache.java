@@ -13,7 +13,9 @@ public class Cache {
     }
 
     public void addVideo(int id, int size) {
+        if (videos.contains(id)) { return; }
         videos.add(id);
         this.capacity -= size;
+
     }
 }
