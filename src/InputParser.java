@@ -1,6 +1,7 @@
 import com.sun.deploy.util.StringUtils;
 
 import java.io.*;
+import java.util.PriorityQueue;
 import java.util.Scanner;
 
 public class InputParser {
@@ -14,8 +15,9 @@ public class InputParser {
 
     private int [] videos;
     private Cache [] caches;
-    private Request [] requests;
+//    private Request [] requests;
     private Endpoint [] endpoints;
+    private PriorityQueue<Request> requests;
 
     public InputParser(String file) {
         this.fileName = file.substring(0, file.lastIndexOf('.'));
@@ -24,8 +26,8 @@ public class InputParser {
     }
 
     public void run() {
-        for (Request r : requests) {
-            handleRequest(r);
+        while (!requests.isEmpty()) {
+            handleRequest(requests.poll());
         }
     }
 
@@ -50,8 +52,9 @@ public class InputParser {
                 this.caches[i] = new Cache(this.capacity);
             }
 
-            this.requests = new Request[this.numRequests];
+//            this.requests = new Request[this.numRequests];
             this.endpoints = new Endpoint[this.numEndopoints];
+            this.requests = new PriorityQueue<Request>();
 
             // VIDEOS
             this.videos = new int[numVideos];
@@ -83,7 +86,23 @@ public class InputParser {
                 temp.endpoint = in.nextInt();
                 temp.requests = in.nextInt();
 
-                this.requests[i] = temp;
+                int gain = endpoints[temp.endpoint].latency;
+
+
+                for (int t : endpoints[temp.endpoint].cachesLatency) {
+                    if (t < gain) {
+                        gain = t;
+                    }
+                }
+
+                int videoSize = videos[temp.video];
+
+                temp.gain = ((endpoints[temp.endpoint].latency - gain) * temp.requests);
+
+
+//                this.requests[i] = temp;
+                this.requests.add(temp);
+
             }
 
             in.close();
@@ -101,14 +120,30 @@ public class InputParser {
 
         int videoSize = videos[r.video];
 
-        int resultCache = -1;
+        int cacheResult = -1;
+
 
         for (int i = 0; i <  endpoints[r.endpoint].cachesId.length; i++) {
             if (caches[endpoints[r.endpoint].cachesId[i]].capacity - videoSize > 0) {
-                caches[endpoints[r.endpoint].cachesId[i]].addVideo(r.video, videoSize);
-                return;
+                cacheResult = i;
+                break;
             }
         }
+
+        if (cacheResult == -1) {
+            return;
+        }
+
+        for (int j = cacheResult; j <  endpoints[r.endpoint].cachesId.length; j++) {
+            if (caches[endpoints[r.endpoint].cachesId[j]].capacity - videoSize > 0) {
+                if (endpoints[r.endpoint].cachesLatency[cacheResult] - endpoints[r.endpoint].cachesLatency[j] > 0) {
+                    cacheResult = j;
+                }
+            }
+        }
+
+        caches[endpoints[r.endpoint].cachesId[cacheResult]].addVideo(r.video, videoSize);
+
     }
 
     /**
