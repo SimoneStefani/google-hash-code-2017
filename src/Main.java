@@ -1,16 +1,19 @@
 /**
- * Created by S. Stefani on 2017-02-23.
+ * Main
+ *
+ * Google HashCode 2017
+ * Created by Marcel Eschmann, Cedric Seger and Simone Stefani on 23/02/2017.
  */
-public class Main {
 
-        public static void main(String[] args) {
-//            InputParser parser = new InputParser("kittens.in");
-//            InputParser parser = new InputParser("me_at_the_zoo.in");
-//            InputParser parser = new InputParser("trending_today.in");
-            InputParser parser = new InputParser("videos_worth_spreading.in");
+public class Main {
+    public static void main(String[] args) {
+        String [] names = {"kittens.in", "me_at_the_zoo.in", "trending_today.in", "videos_worth_spreading.in"};
+
+        for (String file : names) {
+            InputParser parser = new InputParser(file);
             parser.run();
             parser.writeOutput();
-//            parser.writeStats();
-
+            System.out.println();
         }
+    }
 }

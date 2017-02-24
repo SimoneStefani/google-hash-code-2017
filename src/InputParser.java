@@ -1,36 +1,83 @@
-import com.sun.deploy.util.StringUtils;
+/**
+ * InputParser
+ *
+ * Google HashCode 2017
+ * Created by Marcel Eschmann, Cedric Seger and Simone Stefani on 23/02/2017.
+ */
 
 import java.io.*;
 import java.util.PriorityQueue;
 import java.util.Scanner;
 
 public class InputParser {
+
     /**
      * Input file
      */
     private String fileName;
     private String fileExtension;
 
+    /**
+     * Parsed input
+     */
     private int numVideos, numEndopoints, numRequests, numCaches, capacity;
 
-    private int [] videos;
-    private Cache [] caches;
-//    private Request [] requests;
-    private Endpoint [] endpoints;
+    private int[] videos;
+    private Cache[] caches;
+    private Endpoint[] endpoints;
     private PriorityQueue<Request> requests;
 
+    /**
+     * Helpers
+     */
+    public int ratio;
     public int notServed = 0;
+
+    /**
+     * Constructor
+     * @param file
+     */
     public InputParser(String file) {
         this.fileName = file.substring(0, file.lastIndexOf('.'));
         this.fileExtension = file.substring(file.lastIndexOf('.'), file.length());
         this.readInput();
     }
 
+    /**
+     * Run simulation
+     */
     public void run() {
-        while (!requests.isEmpty()) {
-            Request req = requests.poll();
-            handleRequest(req);
-//            System.out.println("Req gain: " + req.gain);
+
+        Request[] rs;
+
+        rs = this.requests.toArray(new Request[0]);
+
+        for (int i = 0; i < 6; i++) {
+            int counter = requests.size() / 4;
+
+            for (int j = 0; j < rs.length; j++) {
+                if (rs[j] == null) {
+                    continue;
+                }
+                if (counter < 0) {
+                    break;
+                }
+                counter--;
+                if (videos[rs[j].video] < this.ratio) {
+                    handleRequest(rs[j]);
+                    rs[j] = null;
+                }
+            }
+            this.ratio += 30;
+        }
+
+        for (int j = 0; j < rs.length; j++) {
+            if (rs[j] == null) {
+                continue;
+            }
+
+            handleRequest(rs[j]);
+            rs[j] = null;
         }
     }
 
@@ -49,15 +96,14 @@ public class InputParser {
             this.numCaches = in.nextInt();
             this.capacity = in.nextInt();
 
+            this.ratio = (numCaches * capacity) / numVideos;
+
+            // CACHES
             this.caches = new Cache[this.numCaches];
 
             for (int i = 0; i < this.numCaches; i++) {
                 this.caches[i] = new Cache(this.capacity);
             }
-
-//            this.requests = new Request[this.numRequests];
-            this.endpoints = new Endpoint[this.numEndopoints];
-            this.requests = new PriorityQueue<Request>();
 
             // VIDEOS
             this.videos = new int[numVideos];
@@ -67,6 +113,8 @@ public class InputParser {
             }
 
             // ENDPOINTS
+            this.endpoints = new Endpoint[this.numEndopoints];
+
             for (int i = 0; i < this.numEndopoints; i++) {
                 Endpoint temp = new Endpoint();
                 temp.latency = in.nextInt();
@@ -83,6 +131,8 @@ public class InputParser {
             }
 
             // REQUESTS
+            this.requests = new PriorityQueue<Request>();
+
             for (int i = 0; i < this.numRequests; i++) {
                 Request temp = new Request();
                 temp.video = in.nextInt();
@@ -98,13 +148,8 @@ public class InputParser {
                     }
                 }
 
-                int videoSize = videos[temp.video];
-
                 temp.gain = ((endpoints[temp.endpoint].latency - gain) * temp.requests);
-//                temp.gain = videoSize;
 
-
-//                this.requests[i] = temp;
                 this.requests.add(temp);
 
             }
@@ -118,17 +163,20 @@ public class InputParser {
     }
 
     public void handleRequest(Request r) {
-        if (endpoints[r.endpoint].cachesId.length == 0) {
+        int [] endpointCaches = endpoints[r.endpoint].cachesId;
+        int [] endpointLatencies = endpoints[r.endpoint].cachesLatency;
+
+        // If no caches available, return
+        if (endpointCaches.length == 0) {
             return;
         }
 
         int videoSize = videos[r.video];
-
         int cacheResult = -1;
 
-
-        for (int i = 0; i <  endpoints[r.endpoint].cachesId.length; i++) {
-            if (caches[endpoints[r.endpoint].cachesId[i]].capacity - videoSize > 0) {
+        // Search first suitable cache (enough size)
+        for (int i = 0; i < endpointCaches.length; i++) {
+            if (caches[endpointCaches[i]].capacity - videoSize > 0) {
                 cacheResult = i;
                 break;
             }
@@ -139,15 +187,16 @@ public class InputParser {
             return;
         }
 
-        for (int j = cacheResult; j <  endpoints[r.endpoint].cachesId.length; j++) {
-            if (caches[endpoints[r.endpoint].cachesId[j]].capacity - videoSize > 0) {
-                if (endpoints[r.endpoint].cachesLatency[cacheResult] - endpoints[r.endpoint].cachesLatency[j] > 0) {
+        // Search for cache with best improvement on latency
+        for (int j = cacheResult; j < endpointCaches.length; j++) {
+            if (caches[endpointCaches[j]].capacity - videoSize > 0) {
+                if (endpointLatencies[cacheResult] - endpointLatencies[j] > 0) {
                     cacheResult = j;
                 }
             }
         }
 
-        caches[endpoints[r.endpoint].cachesId[cacheResult]].addVideo(r.video, videoSize);
+        caches[endpointCaches[cacheResult]].addVideo(r.video, videoSize);
 
     }
 
@@ -162,8 +211,9 @@ public class InputParser {
             out = new FileWriter(outputFile);
             BufferedWriter bw = new BufferedWriter(out);
 
-            // print amount of commands
-            bw.write(String.valueOf(-1));
+            // write the total number of caches
+            // replace with correct value if some caches are not used
+            bw.write(String.valueOf(numCaches));
             bw.newLine();
 
             int counter = 0;
@@ -178,7 +228,7 @@ public class InputParser {
                 for (int id : caches[i].videos) {
                     sb.append(" " + id);
                 }
-//                String output = "" + i + " " + StringUtils.join(caches[i].videos, " ");
+
                 bw.write(sb.toString());
                 bw.newLine();
 
@@ -186,7 +236,7 @@ public class InputParser {
             }
 
             System.out.println("Caches used: " + counter);
-            System.out.println(notServed);
+            System.out.println(notServed + " requests not served");
 
             bw.flush();
             bw.close();

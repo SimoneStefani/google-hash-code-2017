@@ -1,1 +1,8 @@
 *.zip
+*.out
+
+.idea/**/workspace.xml
+.idea/**/tasks.xml
+.idea/dictionaries
+
+/out/

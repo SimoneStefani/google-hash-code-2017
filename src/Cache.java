@@ -1,8 +1,12 @@
 import java.util.ArrayList;
 
 /**
- * Created by S. Stefani on 2017-02-23.
+ * Cache
+ *
+ * Google HashCode 2017
+ * Created by Marcel Eschmann, Cedric Seger and Simone Stefani on 23/02/2017.
  */
+
 public class Cache {
     public int capacity;
     public ArrayList<Integer> videos;
@@ -16,6 +20,5 @@ public class Cache {
         if (videos.contains(id)) { return; }
         videos.add(id);
         this.capacity -= size;
-
     }
 }
