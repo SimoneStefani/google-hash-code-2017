@@ -16,3 +16,8 @@ But how should you decide which videos to put in which cache servers?
 Given a description of cache servers, network endpoints and videos, along with predicted requests for
 individual videos, decide which videos to put in which cache server in order to minimize the average
 waiting time for all requests.
+
+
+#### Example of video requests allocation on cache servers
+Input Data Set: "Me at the zoo"
+![Caches hit image](https://github.com/SimoneStefani/google-hash-code-2017/blob/master/img/hashcode.png)
